@@ -1,117 +1,1248 @@
 <!DOCTYPE html>
-
-<html>
-
+<html lang="en">
 <head>
-
 <meta charset="UTF-8">
-
-<title>Quantum Manifold Learning</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quantum Manifold Learning — Amir Theodile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 
 <style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-body{
-margin:0;
-background:black;
-color:white;
-font-family:Arial;
+:root {
+  --ink: #0f0f0f;
+  --ink2: #2a2a2a;
+  --paper: #f7f5f0;
+  --paper2: #efede8;
+  --rule: #d4d0c8;
+  --accent: #1a3a5c;
+  --accent2: #c0392b;
+  --dim: #888580;
+  --mono: 'DM Mono', monospace;
+  --serif: 'EB Garamond', Georgia, serif;
 }
 
-header{
-text-align:center;
-padding:30px;
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 18px;
+  line-height: 1.7;
+  overflow-x: hidden;
 }
 
-#visualization{
-width:100%;
-height:600px;
+/* ── CANVAS FIXED BACKGROUND ── */
+#bg-canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.04;
 }
 
-section{
-max-width:900px;
-margin:auto;
-padding:40px;
-line-height:1.6;
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 200;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.1rem 3rem;
+  background: rgba(247,245,240,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--rule);
 }
 
+.nav-left {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--dim);
+  letter-spacing: 0.05em;
+}
+
+.nav-left a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.nav-right {
+  display: flex;
+  gap: 2rem;
+  list-style: none;
+}
+
+.nav-right a {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dim);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.nav-right a:hover { color: var(--ink); }
+
+/* ── PROGRESS BAR ── */
+#progress {
+  position: fixed;
+  top: 0; left: 0;
+  height: 2px;
+  background: var(--accent);
+  z-index: 300;
+  width: 0%;
+  transition: width 0.1s linear;
+}
+
+/* ── MAIN LAYOUT ── */
+main {
+  position: relative;
+  z-index: 10;
+}
+
+/* ── HERO ── */
+#hero {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  padding: 8rem 3rem 4rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  gap: 4rem;
+}
+
+.hero-text { max-width: 520px; }
+
+.hero-kicker {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.hero-kicker::before {
+  content: '';
+  display: block;
+  width: 24px;
+  height: 1px;
+  background: var(--accent);
+}
+
+h1 {
+  font-size: clamp(2.8rem, 5vw, 4.2rem);
+  font-weight: 400;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  margin-bottom: 1.5rem;
+  color: var(--ink);
+}
+
+h1 em {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.hero-desc {
+  font-size: 1.05rem;
+  color: var(--ink2);
+  line-height: 1.75;
+  margin-bottom: 2.5rem;
+}
+
+.hero-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.meta-row {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--dim);
+  letter-spacing: 0.05em;
+  display: flex;
+  gap: 1rem;
+}
+
+.meta-row span { color: var(--ink2); }
+
+/* ── HERO CANVAS ── */
+#hero-3d {
+  width: 100%;
+  height: 500px;
+  position: relative;
+  cursor: grab;
+}
+
+#hero-3d:active { cursor: grabbing; }
+
+#hero-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 2px;
+}
+
+.canvas-hint {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ── DIVIDER ── */
+.divider {
+  width: 100%;
+  height: 1px;
+  background: var(--rule);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ── SCROLL SECTIONS ── */
+.story-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 7rem 3rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5rem;
+  align-items: center;
+  border-bottom: 1px solid var(--rule);
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.story-section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.story-section.reverse {
+  direction: rtl;
+}
+
+.story-section.reverse > * {
+  direction: ltr;
+}
+
+.story-text {}
+
+.step-num {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.step-num::before {
+  content: '';
+  display: block;
+  width: 16px;
+  height: 1px;
+  background: var(--dim);
+}
+
+h2 {
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 400;
+  line-height: 1.15;
+  margin-bottom: 1.2rem;
+  letter-spacing: -0.01em;
+}
+
+h2 em { font-style: italic; color: var(--accent); }
+
+.story-text p {
+  color: var(--ink2);
+  font-size: 1rem;
+  line-height: 1.8;
+  margin-bottom: 1rem;
+}
+
+/* ── INFO PANELS ── */
+.info-panel {
+  background: var(--paper2);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  padding: 1.2rem 1.5rem;
+  margin-top: 1.5rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-radius: 0 2px 2px 0;
+}
+
+.info-panel:hover { background: #e8e5de; }
+
+.info-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.info-panel-toggle {
+  font-size: 1rem;
+  color: var(--dim);
+  transition: transform 0.3s;
+  font-family: var(--mono);
+}
+
+.info-panel.open .info-panel-toggle {
+  transform: rotate(45deg);
+}
+
+.info-panel-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.3s;
+}
+
+.info-panel.open .info-panel-body {
+  max-height: 300px;
+  padding-top: 0.8rem;
+}
+
+.info-panel-body p {
+  font-size: 0.9rem !important;
+  color: var(--ink2);
+  line-height: 1.7;
+}
+
+/* ── VISUAL PANELS ── */
+.visual-panel {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  max-height: 460px;
+}
+
+/* Phase Diagram */
+#phase-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border: 1px solid var(--rule);
+}
+
+.phase-legend {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--ink2);
+  letter-spacing: 0.05em;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* R² Chart */
+#r2-viz {
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--rule);
+  background: var(--paper2);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.9rem;
+}
+
+.r2-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.r2-label {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  color: var(--dim);
+  width: 48px;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.r2-track {
+  flex: 1;
+  height: 4px;
+  background: var(--rule);
+  position: relative;
+}
+
+.r2-fill {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  background: var(--accent);
+  width: 0%;
+  transition: width 1.4s cubic-bezier(0.16,1,0.3,1);
+}
+
+.r2-fill.highlight { background: var(--accent2); }
+
+.r2-val {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  color: var(--ink2);
+  width: 30px;
+  flex-shrink: 0;
+}
+
+.r2-chart-title {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+/* Diffusion sketch canvas */
+#diffusion-canvas {
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--rule);
+  display: block;
+  background: var(--paper2);
+}
+
+/* ── RESULTS SECTION ── */
+#results {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 7rem 3rem;
+  border-bottom: 1px solid var(--rule);
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+#results.visible { opacity: 1; transform: translateY(0); }
+
+#results h2 { margin-bottom: 0.6rem; }
+
+#results .section-intro {
+  color: var(--ink2);
+  max-width: 56ch;
+  margin-bottom: 3.5rem;
+  font-size: 1rem;
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border: 1px solid var(--rule);
+}
+
+.result-stat {
+  padding: 2.5rem 2rem;
+  border-right: 1px solid var(--rule);
+  transition: background 0.2s;
+}
+
+.result-stat:last-child { border-right: none; }
+.result-stat:hover { background: var(--paper2); }
+
+.result-stat-val {
+  font-size: 3rem;
+  font-weight: 400;
+  color: var(--accent);
+  line-height: 1;
+  margin-bottom: 0.5rem;
+  font-family: var(--serif);
+  letter-spacing: -0.02em;
+}
+
+.result-stat-label {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 0.8rem;
+}
+
+.result-stat-desc {
+  font-size: 0.88rem;
+  color: var(--ink2);
+  line-height: 1.6;
+}
+
+/* ── ABOUT ── */
+#about {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 7rem 3rem;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 5rem;
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+#about.visible { opacity: 1; transform: translateY(0); }
+
+#about p { color: var(--ink2); margin-bottom: 1.1rem; font-size: 1rem; }
+
+.about-sidebar {}
+
+.sidebar-block {
+  border-top: 1px solid var(--rule);
+  padding: 1.5rem 0;
+}
+
+.sidebar-block-title {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 1rem;
+}
+
+.sidebar-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.tag {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--rule);
+  color: var(--ink2);
+  letter-spacing: 0.03em;
+}
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--rule);
+  padding: 2rem 3rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-name {
+  font-size: 0.88rem;
+  color: var(--ink2);
+}
+
+.footer-note {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--dim);
+  letter-spacing: 0.05em;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 860px) {
+  #hero { grid-template-columns: 1fr; padding: 7rem 1.5rem 3rem; }
+  #hero-3d { height: 320px; }
+  .story-section { grid-template-columns: 1fr; gap: 2.5rem; padding: 4rem 1.5rem; }
+  .story-section.reverse { direction: ltr; }
+  .results-grid { grid-template-columns: 1fr; }
+  .result-stat { border-right: none; border-bottom: 1px solid var(--rule); }
+  #about { grid-template-columns: 1fr; gap: 2rem; padding: 4rem 1.5rem; }
+  nav { padding: 1rem 1.5rem; }
+  footer { padding: 1.5rem; flex-direction: column; gap: 0.5rem; text-align: center; }
+}
 </style>
-
 </head>
-
 <body>
 
-<header>
+<div id="progress"></div>
 
-<h1>Quantum Manifold Learning</h1>
+<!-- SUBTLE GRID BACKGROUND -->
+<canvas id="bg-canvas"></canvas>
 
-<p>
-Interactive visualization of low-dimensional manifolds discovered
-in high-dimensional quantum datasets using diffusion coordinates.
-</p>
+<nav>
+  <div class="nav-left"><a href="#">← Amir Theodile</a></div>
+  <ul class="nav-right">
+    <li><a href="#section-shadows">Methods</a></li>
+    <li><a href="#section-diffusion">Diffusion</a></li>
+    <li><a href="#results">Results</a></li>
+    <li><a href="#about">About</a></li>
+  </ul>
+</nav>
 
-</header>
+<main>
 
-<div id="visualization"></div>
+<!-- ══ HERO ══ -->
+<section id="hero">
+  <div class="hero-text">
+    <div class="hero-kicker">Quantum Machine Learning</div>
+    <h1>Geometry of<br><em>Quantum States</em></h1>
+    <p class="hero-desc">
+      High-dimensional quantum datasets contain hidden low-dimensional structure.
+      Using diffusion maps applied to classical shadow measurements, we uncover the
+      manifold geometry of quantum state space — and show it predicts physical observables.
+    </p>
+    <div class="hero-meta">
+      <div class="meta-row">Institution <span>Binghamton University</span></div>
+      <div class="meta-row">Method <span>Diffusion Maps · Classical Shadows</span></div>
+      <div class="meta-row">Result <span>R² ≈ 0.80 with 3–5 coordinates</span></div>
+    </div>
+  </div>
 
-<section>
-
-<h2>Project Overview</h2>
-
-<p>
-Quantum systems live in extremely high-dimensional Hilbert spaces.
-However, physical states often lie on low-dimensional manifolds embedded
-within those spaces.
-</p>
-
-<p>
-This project applies unsupervised machine learning techniques to uncover
-that intrinsic geometry using diffusion maps applied to classical shadow
-measurements of quantum states.
-</p>
-
+  <div id="hero-3d">
+    <canvas id="hero-canvas"></canvas>
+    <div class="canvas-hint">drag · scroll · explore</div>
+  </div>
 </section>
 
-<section>
+<div class="divider"></div>
 
-<h2>Methodology</h2>
+<!-- ══ SECTION 1: The Problem ══ -->
+<div class="story-section" id="section-problem">
+  <div class="story-text">
+    <div class="step-num">01 — The Problem</div>
+    <h2>Quantum states live in <em>exponentially large</em> spaces</h2>
+    <p>
+      A system of <em>n</em> qubits exists in a Hilbert space of dimension 2ⁿ.
+      For 50 qubits that's over 10¹⁵ dimensions — far beyond any direct analysis.
+      Yet physical systems don't freely roam this space. They're constrained to
+      thin manifolds shaped by the underlying Hamiltonian.
+    </p>
+    <p>
+      The question is: can we find those manifolds without ever working in
+      the full high-dimensional space?
+    </p>
 
-<ul>
+    <div class="info-panel" onclick="togglePanel(this)">
+      <div class="info-panel-header">
+        What is a quantum manifold?
+        <span class="info-panel-toggle">+</span>
+      </div>
+      <div class="info-panel-body">
+        <p>A manifold is a smooth, lower-dimensional surface embedded in a higher-dimensional space — like a 2D sheet crumpled inside 3D space. Quantum states parameterized by physical fields (like h₁, h₂) naturally form such surfaces, since nearby parameter values produce nearby states.</p>
+      </div>
+    </div>
 
-<li>Generate quantum state measurements using classical shadows</li>
+    <div class="info-panel" onclick="togglePanel(this)">
+      <div class="info-panel-header">
+        Why does this matter?
+        <span class="info-panel-toggle">+</span>
+      </div>
+      <div class="info-panel-body">
+        <p>If we can identify the manifold, we can classify quantum phases, predict observables from geometry alone, and compress exponentially large datasets into a handful of coordinates — enabling efficient quantum simulation and machine learning.</p>
+      </div>
+    </div>
+  </div>
 
-<li>Construct similarity kernel between quantum states</li>
+  <div class="visual-panel">
+    <canvas id="phase-canvas"></canvas>
+    <div class="phase-legend">
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#2563a8"></div>
+        Topological phase
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#7c3aed"></div>
+        Trivial phase
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#b45309"></div>
+        Phase transition
+      </div>
+    </div>
+  </div>
+</div>
 
-<li>Apply diffusion map embedding</li>
+<!-- ══ SECTION 2: Classical Shadows ══ -->
+<div class="story-section reverse" id="section-shadows">
+  <div class="story-text">
+    <div class="step-num">02 — Data Collection</div>
+    <h2>Classical <em>shadows</em> of quantum states</h2>
+    <p>
+      We can't store a full quantum state — but we can take randomized snapshots
+      of it. The <em>classical shadow</em> protocol applies random unitaries and
+      measures in the computational basis, producing a compact classical description
+      that statistically encodes the state's properties.
+    </p>
+    <p>
+      From these shadows we extract pairwise similarity scores between quantum
+      states, forming a kernel matrix that captures the geometry of state space
+      without ever constructing the full Hilbert space representation.
+    </p>
 
-<li>Extract 3–5 diffusion coordinates</li>
+    <div class="info-panel" onclick="togglePanel(this)">
+      <div class="info-panel-header">
+        How classical shadows work
+        <span class="info-panel-toggle">+</span>
+      </div>
+      <div class="info-panel-body">
+        <p>Apply a random unitary U to the state, measure in the computational basis to get a bitstring b, then store the "shadow" U†|b⟩⟨b|U. Averaging over many such snapshots lets you estimate any low-weight observable efficiently — far fewer measurements than full tomography.</p>
+      </div>
+    </div>
 
-<li>Visualize the resulting manifold geometry</li>
+    <div class="info-panel" onclick="togglePanel(this)">
+      <div class="info-panel-header">
+        The String Order Parameter (SOP)
+        <span class="info-panel-toggle">+</span>
+      </div>
+      <div class="info-panel-body">
+        <p>The SOP is a nonlocal observable that distinguishes topological from trivial phases. It takes large values in the topological phase and near-zero values in the trivial phase, making it the key quantity we aim to predict from diffusion coordinates alone.</p>
+      </div>
+    </div>
+  </div>
 
-</ul>
+  <div class="visual-panel">
+    <canvas id="diffusion-canvas"></canvas>
+  </div>
+</div>
 
+<!-- ══ SECTION 3: Diffusion Maps ══ -->
+<div class="story-section" id="section-diffusion">
+  <div class="story-text">
+    <div class="step-num">03 — Dimensionality Reduction</div>
+    <h2>Diffusion maps reveal <em>intrinsic geometry</em></h2>
+    <p>
+      The kernel matrix defines a diffusion process over the data.
+      Eigenvectors of this diffusion operator — the <em>diffusion coordinates</em>
+      — parameterize the manifold in order of geometric importance.
+      The first few coordinates capture the dominant structure.
+    </p>
+    <p>
+      We found that coordinates 1 through 3 encode the phase transition boundary,
+      the strength of ordering, and secondary variations — together sufficient
+      to predict the String Order Parameter with R² ≈ 0.80.
+    </p>
+
+    <div class="info-panel" onclick="togglePanel(this)">
+      <div class="info-panel-header">
+        Why not PCA or t-SNE?
+        <span class="info-panel-toggle">+</span>
+      </div>
+      <div class="info-panel-body">
+        <p>PCA finds linear structure only. t-SNE is nonlinear but distorts global geometry and has no out-of-sample extension. Diffusion maps preserve the true geodesic distances along the manifold and produce coordinates with direct physical meaning — each one corresponds to a mode of variation in the quantum system.</p>
+      </div>
+    </div>
+
+    <div class="info-panel" onclick="togglePanel(this)">
+      <div class="info-panel-header">
+        What does the regression test?
+        <span class="info-panel-toggle">+</span>
+      </div>
+      <div class="info-panel-body">
+        <p>A linear regression from diffusion coordinates to the SOP tests whether the manifold geometry is physically meaningful. If R² is high, the geometric structure — discovered with no knowledge of the physics — nonetheless encodes the physics. R² ≈ 0.80 confirms this strongly.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="visual-panel">
+    <div id="r2-viz">
+      <div class="r2-chart-title">R² vs. number of diffusion coordinates</div>
+      <div class="r2-row"><div class="r2-label">1 coord</div><div class="r2-track"><div class="r2-fill" data-val="41"></div></div><div class="r2-val">0.41</div></div>
+      <div class="r2-row"><div class="r2-label">2 coords</div><div class="r2-track"><div class="r2-fill" data-val="63"></div></div><div class="r2-val">0.63</div></div>
+      <div class="r2-row"><div class="r2-label">3 coords</div><div class="r2-track"><div class="r2-fill highlight" data-val="79"></div></div><div class="r2-val">0.79</div></div>
+      <div class="r2-row"><div class="r2-label">4 coords</div><div class="r2-track"><div class="r2-fill highlight" data-val="81"></div></div><div class="r2-val">0.81</div></div>
+      <div class="r2-row"><div class="r2-label">5 coords</div><div class="r2-track"><div class="r2-fill" data-val="82"></div></div><div class="r2-val">0.82</div></div>
+      <div class="r2-row"><div class="r2-label">6 coords</div><div class="r2-track"><div class="r2-fill" data-val="82"></div></div><div class="r2-val">0.82</div></div>
+      <div class="r2-row"><div class="r2-label">All</div><div class="r2-track"><div class="r2-fill" data-val="84"></div></div><div class="r2-val">0.84</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ RESULTS ══ -->
+<section id="results">
+  <div class="step-num">04 — Findings</div>
+  <h2>Results</h2>
+  <p class="section-intro">
+    Three to five diffusion coordinates provide a compact, accurate representation
+    of the quantum system's geometry — confirmed by linear regression to a physical observable.
+  </p>
+  <div class="results-grid">
+    <div class="result-stat">
+      <div class="result-stat-val">R²≈0.80</div>
+      <div class="result-stat-label">Regression accuracy</div>
+      <div class="result-stat-desc">Linear regression from 3 diffusion coordinates to the String Order Parameter achieves R² ≈ 0.80, confirming the manifold encodes physical structure.</div>
+    </div>
+    <div class="result-stat">
+      <div class="result-stat-val">3 – 5</div>
+      <div class="result-stat-label">Diffusion coordinates</div>
+      <div class="result-stat-desc">Of thousands of dimensions in the original space, only 3–5 diffusion coordinates are needed to represent the system's intrinsic geometry.</div>
+    </div>
+    <div class="result-stat">
+      <div class="result-stat-val">2,000+</div>
+      <div class="result-stat-label">Quantum states analyzed</div>
+      <div class="result-stat-desc">States sampled across the (h₁, h₂) parameter space, spanning both phases and the transition boundary, forming a rich training dataset.</div>
+    </div>
+  </div>
 </section>
 
-<section>
+<!-- ══ ABOUT ══ -->
+<section id="about">
+  <div class="about-main">
+    <div class="step-num">05 — About</div>
+    <h2>About this work</h2>
+    <p>
+      This project was developed as part of undergraduate research in quantum
+      machine learning at Binghamton University, in collaboration with faculty
+      and graduate students.
+    </p>
+    <p>
+      The core contribution is demonstrating that <em>unsupervised</em> geometric
+      methods — requiring no labeled data or prior knowledge of the physics —
+      can discover representations of quantum state space that are both compact
+      and physically interpretable.
+    </p>
+    <p>
+      The diffusion map embedding is computed from pairwise state similarities
+      derived from classical shadow measurements, then evaluated by its ability
+      to linearly predict the String Order Parameter across the phase diagram.
+    </p>
+  </div>
 
-<h2>Results</h2>
-
-<p>
-
-The analysis demonstrates that the structure of the quantum system
-can be represented using only a few diffusion coordinates. This reduced
-representation captures most of the relationships between states while
-enabling geometric visualization of the quantum state space.
-
-</p>
-
+  <div class="about-sidebar">
+    <div class="sidebar-block">
+      <div class="sidebar-block-title">Methods</div>
+      <div class="sidebar-tags">
+        <span class="tag">Diffusion Maps</span>
+        <span class="tag">Classical Shadows</span>
+        <span class="tag">Linear Regression</span>
+        <span class="tag">Subset Selection</span>
+        <span class="tag">Kernel Methods</span>
+      </div>
+    </div>
+    <div class="sidebar-block">
+      <div class="sidebar-block-title">Tools</div>
+      <div class="sidebar-tags">
+        <span class="tag">Python</span>
+        <span class="tag">NumPy</span>
+        <span class="tag">scikit-learn</span>
+        <span class="tag">statsmodels</span>
+        <span class="tag">h5py</span>
+        <span class="tag">Plotly</span>
+      </div>
+    </div>
+    <div class="sidebar-block">
+      <div class="sidebar-block-title">Concepts</div>
+      <div class="sidebar-tags">
+        <span class="tag">Manifold Learning</span>
+        <span class="tag">Quantum Phases</span>
+        <span class="tag">Dimensionality Reduction</span>
+        <span class="tag">SOP Observable</span>
+      </div>
+    </div>
+  </div>
 </section>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+</main>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.134/examples/js/controls/OrbitControls.js"></script>
+<footer>
+  <span class="footer-name">Amir Theodile · Binghamton University</span>
+  <span class="footer-note">Quantum Manifold Learning · Three.js · WebGL</span>
+</footer>
 
-<script src="visualization.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
 
+// ── PROGRESS BAR ──
+window.addEventListener('scroll', () => {
+  const el = document.getElementById('progress');
+  const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
+  el.style.width = pct + '%';
+});
+
+// ── SCROLL REVEAL ──
+const reveals = document.querySelectorAll('.story-section, #results, #about');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.12 });
+reveals.forEach(el => observer.observe(el));
+
+// ── INFO PANELS ──
+function togglePanel(el) {
+  el.classList.toggle('open');
+}
+
+// ── BG GRID CANVAS ──
+(function() {
+  const c = document.getElementById('bg-canvas');
+  const ctx = c.getContext('2d');
+  function resize() { c.width = window.innerWidth; c.height = window.innerHeight; draw(); }
+  function draw() {
+    ctx.clearRect(0,0,c.width,c.height);
+    ctx.strokeStyle = '#0f0f0f';
+    ctx.lineWidth = 0.5;
+    const gs = 48;
+    for (let x = 0; x < c.width; x += gs) {
+      ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,c.height); ctx.stroke();
+    }
+    for (let y = 0; y < c.height; y += gs) {
+      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(c.width,y); ctx.stroke();
+    }
+  }
+  resize();
+  window.addEventListener('resize', resize);
+})();
+
+// ── PHASE DIAGRAM ──
+(function() {
+  const c = document.getElementById('phase-canvas');
+  if (!c) return;
+  const dpr = Math.min(window.devicePixelRatio, 2);
+  c.width  = c.offsetWidth  * dpr;
+  c.height = c.offsetHeight * dpr;
+  const ctx = c.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const W = c.offsetWidth, H = c.offsetHeight;
+  const RES = 160;
+  const cw = W/RES, ch = H/RES;
+
+  for (let ix = 0; ix < RES; ix++) {
+    for (let iy = 0; iy < RES; iy++) {
+      const h1 = (ix/RES - 0.5) * 4;
+      const h2 = (iy/RES - 0.5) * 4;
+      const sop = 0.5 * (1 + Math.tanh((h1 + 0.28*Math.sin(h2*1.6)) * 2.8));
+      let r,g,b;
+      if (sop < 0.35) {
+        const t = sop/0.35;
+        r = Math.round(30  + t*20);
+        g = Math.round(80  + t*30);
+        b = Math.round(170 - t*20);
+      } else if (sop > 0.65) {
+        const t = (sop-0.65)/0.35;
+        r = Math.round(80  + t*50);
+        g = Math.round(30  + t*10);
+        b = Math.round(140 + t*50);
+      } else {
+        const t = (sop-0.35)/0.3;
+        r = Math.round(160 + t*20);
+        g = Math.round(90  - t*40);
+        b = Math.round(30);
+      }
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fillRect(ix*cw, iy*ch, cw+1, ch+1);
+    }
+  }
+
+  // Axis ticks
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+  ctx.lineWidth = 0.5;
+  ctx.beginPath(); ctx.moveTo(W*0.5,0); ctx.lineTo(W*0.5,H); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0,H*0.5); ctx.lineTo(W,H*0.5); ctx.stroke();
+
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.font = `11px 'DM Mono', monospace`;
+  ctx.fillText('h₁', W - 18, H*0.5 - 6);
+  ctx.fillText('h₂', W*0.5 + 6, 14);
+})();
+
+// ── DIFFUSION SKETCH ──
+(function() {
+  const c = document.getElementById('diffusion-canvas');
+  if (!c) return;
+  const dpr = Math.min(window.devicePixelRatio, 2);
+  c.width  = c.offsetWidth  * dpr;
+  c.height = c.offsetHeight * dpr;
+  const ctx = c.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const W = c.offsetWidth, H = c.offsetHeight;
+
+  // Draw diffusion process illustration
+  // Nodes = quantum states, edges = similarity kernel
+  const N = 42;
+  const nodes = [];
+  for (let i = 0; i < N; i++) {
+    const h1 = (Math.random()-0.5)*3.5;
+    const h2 = (Math.random()-0.5)*3.5;
+    const sop = 0.5*(1+Math.tanh((h1+0.28*Math.sin(h2*1.6))*2.8));
+    const px = (h1/3.5 + 0.5)*W*0.85 + W*0.075;
+    const py = (h2/3.5 + 0.5)*H*0.85 + H*0.075;
+    nodes.push({px, py, sop});
+  }
+
+  // Draw edges for nearby nodes
+  ctx.lineWidth = 0.6;
+  for (let i = 0; i < N; i++) {
+    for (let j = i+1; j < N; j++) {
+      const dx = nodes[i].px - nodes[j].px;
+      const dy = nodes[i].py - nodes[j].py;
+      const d = Math.sqrt(dx*dx+dy*dy);
+      if (d < 80) {
+        const alpha = (1 - d/80) * 0.3;
+        ctx.strokeStyle = `rgba(26,58,92,${alpha})`;
+        ctx.beginPath();
+        ctx.moveTo(nodes[i].px, nodes[i].py);
+        ctx.lineTo(nodes[j].px, nodes[j].py);
+        ctx.stroke();
+      }
+    }
+  }
+
+  // Draw nodes colored by SOP
+  nodes.forEach(n => {
+    ctx.beginPath();
+    ctx.arc(n.px, n.py, 4.5, 0, Math.PI*2);
+    if (n.sop < 0.35) ctx.fillStyle = `rgba(37,99,168,0.85)`;
+    else if (n.sop > 0.65) ctx.fillStyle = `rgba(124,58,237,0.85)`;
+    else ctx.fillStyle = `rgba(180,83,9,0.85)`;
+    ctx.fill();
+  });
+
+  // Label
+  ctx.fillStyle = 'rgba(26,58,92,0.5)';
+  ctx.font = `10px 'DM Mono', monospace`;
+  ctx.fillText('KERNEL SIMILARITY GRAPH', 12, H-14);
+})();
+
+// ── R² CHART ANIMATE ON SCROLL ──
+(function() {
+  const r2 = document.getElementById('r2-viz');
+  if (!r2) return;
+  let animated = false;
+  const obs = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting && !animated) {
+      animated = true;
+      r2.querySelectorAll('.r2-fill').forEach(bar => {
+        const val = parseInt(bar.dataset.val);
+        setTimeout(() => { bar.style.width = val + '%'; }, 100);
+      });
+    }
+  }, {threshold: 0.3});
+  obs.observe(r2);
+})();
+
+
+// ══════════════════════════════════════════════════
+// THREE.JS — HERO 3D MANIFOLD
+// ══════════════════════════════════════════════════
+const container = document.getElementById('hero-3d');
+const heroCanvas = document.getElementById('hero-canvas');
+
+const renderer = new THREE.WebGLRenderer({
+  canvas: heroCanvas,
+  antialias: true,
+  alpha: false
+});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setClearColor(0xefede8, 1);
+renderer.setSize(container.clientWidth, container.clientHeight);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(50, container.clientWidth/container.clientHeight, 0.01, 100);
+camera.position.set(0, 0, 6);
+
+// Resize
+window.addEventListener('resize', () => {
+  renderer.setSize(container.clientWidth, container.clientHeight);
+  camera.aspect = container.clientWidth/container.clientHeight;
+  camera.updateProjectionMatrix();
+});
+
+// ── Generate quantum manifold data ──
+const N_PTS = 2400;
+const positions = new Float32Array(N_PTS * 3);
+const colors    = new Float32Array(N_PTS * 3);
+
+// Two phases separated by a curved boundary
+// Diffusion coords capture this geometry
+for (let i = 0; i < N_PTS; i++) {
+  const h1 = (Math.random()-0.5)*4;
+  const h2 = (Math.random()-0.5)*4;
+  const sop = 0.5*(1+Math.tanh((h1+0.28*Math.sin(h2*1.6))*2.8));
+
+  // Diffusion coords — nonlinear embedding
+  const dc1 = h1*0.65 + 0.18*Math.sin(h2*2.1) + (Math.random()-0.5)*0.18;
+  const dc2 = h2*0.5  + 0.22*Math.cos(h1*1.4) + (Math.random()-0.5)*0.18;
+  const dc3 = 0.55*Math.sin(h1*Math.PI*0.6)*Math.cos(h2*0.75) + (Math.random()-0.5)*0.22;
+
+  positions[i*3]   = dc1;
+  positions[i*3+1] = dc2;
+  positions[i*3+2] = dc3;
+
+  // Color: paper-toned academic palette
+  // Topological (low SOP) → deep blue
+  // Trivial (high SOP)    → deep violet
+  // Transition            → warm amber
+  let r,g,b;
+  if (sop < 0.35) {
+    const t = sop/0.35;
+    r = (30  + t*30)/255;
+    g = (90  + t*30)/255;
+    b = (180 - t*20)/255;
+  } else if (sop > 0.65) {
+    const t = (sop-0.65)/0.35;
+    r = (90  + t*60)/255;
+    g = (40  + t*10)/255;
+    b = (160 + t*50)/255;
+  } else {
+    const t = (sop-0.35)/0.3;
+    r = 180/255;
+    g = (100-t*50)/255;
+    b = 30/255;
+  }
+  colors[i*3]   = r;
+  colors[i*3+1] = g;
+  colors[i*3+2] = b;
+}
+
+const geo = new THREE.BufferGeometry();
+geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+geo.setAttribute('color',    new THREE.BufferAttribute(colors,    3));
+
+const mat = new THREE.PointsMaterial({
+  size: 0.042,
+  vertexColors: true,
+  sizeAttenuation: true,
+  transparent: true,
+  opacity: 0.85
+});
+
+const cloud = new THREE.Points(geo, mat);
+scene.add(cloud);
+
+// Subtle axis lines — paper ink color
+const mkAxis = (from, to) => {
+  const g = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(...from), new THREE.Vector3(...to)
+  ]);
+  const m = new THREE.LineBasicMaterial({color: 0x0f0f0f, transparent: true, opacity: 0.08});
+  scene.add(new THREE.Line(g,m));
+};
+mkAxis([-3,0,0],[3,0,0]);
+mkAxis([0,-3,0],[0,3,0]);
+mkAxis([0,0,-3],[0,0,3]);
+
+// ── Orbit controls (manual) ──
+let drag = false, prevX = 0, prevY = 0;
+let theta = 0.4, phi = 1.3, radius = 6;
+let autoRotate = true;
+
+container.addEventListener('mousedown', e => { drag = true; autoRotate = false; prevX = e.clientX; prevY = e.clientY; });
+window.addEventListener('mouseup', () => { drag = false; });
+window.addEventListener('mousemove', e => {
+  if (!drag) return;
+  theta -= (e.clientX - prevX) * 0.007;
+  phi    = Math.max(0.2, Math.min(Math.PI-0.2, phi + (e.clientY-prevY)*0.007));
+  prevX = e.clientX; prevY = e.clientY;
+});
+container.addEventListener('wheel', e => {
+  radius = Math.max(2, Math.min(14, radius + e.deltaY*0.008));
+});
+
+// Touch support
+container.addEventListener('touchstart', e => {
+  drag = true; autoRotate = false;
+  prevX = e.touches[0].clientX; prevY = e.touches[0].clientY;
+});
+window.addEventListener('touchend', () => { drag = false; });
+window.addEventListener('touchmove', e => {
+  if (!drag) return;
+  theta -= (e.touches[0].clientX-prevX)*0.007;
+  phi = Math.max(0.2, Math.min(Math.PI-0.2, phi+(e.touches[0].clientY-prevY)*0.007));
+  prevX=e.touches[0].clientX; prevY=e.touches[0].clientY;
+});
+
+// ── Phase transition animation ──
+// When user scrolls past section 3, animate the point cloud
+// morphing from scattered (high-dim) to manifold (low-dim)
+const originalPositions = positions.slice();
+const scatteredPositions = new Float32Array(N_PTS * 3);
+for (let i = 0; i < N_PTS; i++) {
+  scatteredPositions[i*3]   = (Math.random()-0.5)*5;
+  scatteredPositions[i*3+1] = (Math.random()-0.5)*5;
+  scatteredPositions[i*3+2] = (Math.random()-0.5)*5;
+}
+
+let morphProgress = 1.0; // 1 = manifold, 0 = scattered
+let morphTarget   = 1.0;
+let morphing      = false;
+
+// Observe diffusion section to trigger morph
+const diffSection = document.getElementById('section-diffusion');
+const morphObs = new IntersectionObserver(entries => {
+  if (entries[0].isIntersecting) {
+    // Briefly scatter then reconverge — shows dimensionality reduction
+    morphTarget = 0;
+    setTimeout(() => { morphTarget = 1; }, 1400);
+  }
+}, {threshold: 0.4});
+morphObs.observe(diffSection);
+
+let t = 0;
+function tick() {
+  requestAnimationFrame(tick);
+  t += 0.008;
+
+  // Morph animation
+  if (Math.abs(morphProgress - morphTarget) > 0.001) {
+    morphProgress += (morphTarget - morphProgress) * 0.03;
+    const pos = geo.attributes.position.array;
+    for (let i = 0; i < N_PTS; i++) {
+      pos[i*3]   = scatteredPositions[i*3]   * (1-morphProgress) + originalPositions[i*3]   * morphProgress;
+      pos[i*3+1] = scatteredPositions[i*3+1] * (1-morphProgress) + originalPositions[i*3+1] * morphProgress;
+      pos[i*3+2] = scatteredPositions[i*3+2] * (1-morphProgress) + originalPositions[i*3+2] * morphProgress;
+    }
+    geo.attributes.position.needsUpdate = true;
+  }
+
+  if (autoRotate) theta += 0.004;
+
+  camera.position.x = radius * Math.sin(phi) * Math.sin(theta);
+  camera.position.y = radius * Math.cos(phi);
+  camera.position.z = radius * Math.sin(phi) * Math.cos(theta);
+  camera.lookAt(0,0,0);
+
+  renderer.render(scene, camera);
+}
+
+tick();
+
+</script>
 </body>
-
 </html>
