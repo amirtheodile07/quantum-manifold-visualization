@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Quantum Manifold Visualization</title>
+
+<style>
+body { margin: 0; overflow: hidden; background:black; }
+
+#info{
+position:absolute;
+top:10px;
+left:10px;
+color:white;
+font-family:Arial;
+background:rgba(0,0,0,0.6);
+padding:10px;
+border-radius:8px;
+}
+</style>
+
+</head>
+
+<body>
+
+<div id="info">
+<h2>Quantum State Manifold</h2>
+<p>
+Low-dimensional manifold learned from<br>
+high-dimensional quantum data using diffusion maps.
+</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.134/examples/js/controls/OrbitControls.js"></script>
+
+<script>
+
+const scene = new THREE.Scene();
+
+const camera = new THREE.PerspectiveCamera(
+75,
+window.innerWidth / window.innerHeight,
+0.1,
+1000
+);
+
+camera.position.z = 6;
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth,window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+const controls = new THREE.OrbitControls(camera,renderer.domElement);
+
+const geometry = new THREE.BufferGeometry();
+
+const points = [];
+const colors = [];
+
+const n = 1200;
+
+for(let i=0;i<n;i++){
+
+let t = Math.random()*Math.PI*2;
+let r = Math.random()*2;
+
+let x = r*Math.cos(t);
+let y = r*Math.sin(t);
+let z = Math.sin(2*t)*0.5 + r*0.2;
+
+points.push(x,y,z);
+
+let color = new THREE.Color();
+color.setHSL((z+1)/2,0.8,0.6);
+
+colors.push(color.r,color.g,color.b);
+
+}
+
+geometry.setAttribute(
+'position',
+new THREE.Float32BufferAttribute(points,3)
+);
+
+geometry.setAttribute(
+'color',
+new THREE.Float32BufferAttribute(colors,3)
+);
+
+const material = new THREE.PointsMaterial({
+size:0.05,
+vertexColors:true
+});
+
+const cloud = new THREE.Points(geometry,material);
+
+scene.add(cloud);
+
+function animate(){
+
+requestAnimationFrame(animate);
+
+cloud.rotation.y += 0.001;
+
+controls.update();
+
+renderer.render(scene,camera);
+
+}
+
+animate();
+
+window.addEventListener("resize",function(){
+
+camera.aspect = window.innerWidth/window.innerHeight;
+camera.updateProjectionMatrix();
+renderer.setSize(window.innerWidth,window.innerHeight);
+
+});
+
+</script>
+
+</body>
+</html>
